@@ -1,4 +1,4 @@
-scriptname StaticSkillLevelingEffect extends ActiveMagicEffect
+scriptname StaticSkillLevelingEffectScript extends ActiveMagicEffect
 
 int property TrackedPlayerLevel auto
 int property CurrentPlayerLevel auto
