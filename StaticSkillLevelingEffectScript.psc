@@ -13,28 +13,28 @@ int property SkillPointCost75 auto
 Message property LevelUpMenu auto
 
 ;==========================================
-{Register for sleep and track player level}
+;Register for sleep and track player level
 ;==========================================
 
 Event OnInit()
     Initialization()
 EndEvent
 
-Event OnPlayerLoadLoadGame()
+Event OnPlayerLoadGame()
     Initialization()
 EndEvent
 
 
 ;============================================
-{Main event handler for leveling after sleep}
+;Main handler for leveling after sleep
 ;============================================
 
 Event OnPlayerSleepStop(bool abInterrupted)
     CurrentPlayerLevel = Game.GetPlayer().GetLevel()
-    {Allow assignment of skills if player level has changed and sleep is not interrupted}
+    ;Allow assignment of skills if player level has changed and sleep is not interrupted
     if (CurrentPlayerLevel > TrackedPlayerLevel && !abInterrupted)
         NumLevelsGained = CurrentPlayerLevel - TrackedPlayerLevel
-        {Add Skills here by calling AddSkills function}
+        ;Add Skills here by calling AddSkills function
         AddSkills(NumLevelsGained)
         
     endif      
@@ -42,7 +42,7 @@ EndEvent
 
 
 ;============================================
-{Functions}
+;Functions
 ;============================================
 
 Function AddSkills(int LevelsGained)
