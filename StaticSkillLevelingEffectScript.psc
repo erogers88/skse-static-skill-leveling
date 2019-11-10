@@ -58,7 +58,7 @@ Event OnSleepStop(bool abInterrupted)
 	else
 	    ;Debug.MessageBox("Player woke up naturally")
         CurrentPlayerLevel = Game.GetPlayer().GetLevel()
-            if (CurrentPlayerLevel > TrackedPlayerLevel && !abInterrupted)
+            if (CurrentPlayerLevel > TrackedPlayerLevel)
                 NumLevelsGained = CurrentPlayerLevel - TrackedPlayerLevel
                 ;Add Skills here by calling AddSkills function
                 AddSkills(NumLevelsGained)       
@@ -75,6 +75,7 @@ endEvent
 
 Function AddSkills(int LevelsGained)
     LevelUpMenu.show()
+	TrackedPlayerLevel = CurrentPlayerLevel
 EndFunction
 
 Function Initialization()	
