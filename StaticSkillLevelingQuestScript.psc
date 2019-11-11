@@ -6,5 +6,5 @@ Spell property ApplyActiveEffect auto
 
 Event OnInit()
 Game.GetPlayer().AddSpell(ApplyActiveEffect)
-Debug.MessageBox("The effect was applied to the player")
+;Debug.MessageBox("The effect was applied to the player")
 EndEvent
