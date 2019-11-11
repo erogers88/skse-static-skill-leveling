@@ -55,17 +55,14 @@ int property SkillPointCost75 auto
 ;Level Up Menu Properties
 ;==========================================
 
-Message property LevelUpMenu auto
-{This is the message that allows the player to assign skill points}
-
 Message Property MagicSkillMenu auto
 {Menu to display on leveling Magic skills}
-
 Message Property WarriorSkillMenu auto
 {Menu to display on leveling Warrior Skills}
-
 Message Property ThiefSkillMenu auto
 {Menu to display on leveling Thief Skills}
+Message property DoneMenu auto
+{This is the message that confirm the completion of skill assignment}
 
 ;==============================================================================================================
 
@@ -77,30 +74,39 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
     Initialization()
 EndEvent
 
+;==========================================
+;Set player skill levels when race menu is closed
+;==========================================
+
+Event OnMenuClose(string menuName)
+    if (menuName == "RaceSex Menu")
+        SetInitialSkills()
+        Debug.MessageBox("Race Menu Close Detected")
+    endif
+EndEvent
+
 ;============================================
 ;Main handler for leveling after sleep
 ;============================================
 
 Event OnSleepStop(bool abInterrupted)
-	if abInterrupted
+    if (abInterrupted)
     ;do nothing if interrupted
 	else
         CurrentPlayerLevel = Game.GetPlayer().GetLevel()
             if (CurrentPlayerLevel > TrackedPlayerLevel)
-                AddSkills(NumLevelsGained)       
+                AddSkills()       
             endif   
 	endIf
     RegisterForSleep()
     ;Maybe not needed - check later
 endEvent
 
-
-
 ;============================================
 ;Menu Functions
 ;============================================
 
-Function AddSkills(int levelsGained)
+Function AddSkills()
     CurrentSkillPointsGained = CurrentSkillPointsGained + CalculateSkillPointsGained()
     TrackedPlayerLevel = CurrentPlayerLevel
     SetBaseSkillLevels()
@@ -109,47 +115,81 @@ Function AddSkills(int levelsGained)
     int CurrentMenu = 0
     int IndexOfCurrentSelectedSkill
     int LevelOfCurrentSelectedSkill
-    bool CanCurrentSelectedSkillBeIncreased
-    int Option = DisplaySkillMenu.show(CurrentMenu)
-    while(Option <> 8);didn't exit
+    bool HasEnoughSkillPointsToIncreaseSkill
+    bool SkillIsBelowMaxLevel
+
+    int OptionDoneMenu
+    int Option = 9
+    while(Option != 8);didn't exit
+        Option = DisplaySkillMenu(CurrentMenu)
         ;change menu if player picked another one
     	if(Option == 0)
-			currentMenu -= 1
-			if (currentMenu < 0)
-				currentMenu = 2
-			endif
-		elseif (Option == 7)
-			currentMenu += 1
-			if (currentMenu > 2)
-				currentMenu = 0
-		    endif
+            if(CurrentMenu == 0)
+                CurrentMenu = 2
+            elseif(CurrentMenu == 1)
+                CurrentMenu = 0
+            else
+                CurrentMenu = 1
+            endif
+        elseif(Option == 7)
+            if(CurrentMenu == 0)
+                CurrentMenu = 1
+            elseif(CurrentMenu == 1)
+                CurrentMenu = 2
+            else
+                CurrentMenu = 0
+            endif           
+
         ;if player selected a skill to level
-        else
-        IndexOfCurrentSelectedSkill = GetSkillNameIndex(CurrentMenu, Option)
-        LevelOfCurrentSelectedSkill = BaseSkillLevels[IndexOfCurrentSelectedSkill]
-        CanCurrentSelectedSkillBeIncreased = EnoughSkillPointsToIncreaseSkill(LevelOfCurrentSelectedSkill)
-        if(CanCurrentSelectedSkillBeIncreased && BaseSkillLevels[IndexOfCurrentSelectedSkill] > MaxSkillLevels[IndexOfCurrentSelectedSkill])
-            Game.IncrementSkill(SkillNames[IndexOfCurrentSelectedSkill])
-            CurrentSkillPointsGained = CurrentSkillPointsGained - SkillPointCostToIncreaseSkill(LevelOfCurrentSelectedSkill)
-            BaseSkillLevels[IndexOfCurrentSelectedSkill] = BaseSkillLevels[IndexOfCurrentSelectedSkill] + 1
+        elseif(Option >= 1 && Option <= 6)
+            IndexOfCurrentSelectedSkill = GetSkillNameIndex(CurrentMenu, Option)
+            LevelOfCurrentSelectedSkill = BaseSkillLevels[IndexOfCurrentSelectedSkill]
+            HasEnoughSkillPointsToIncreaseSkill = CheckEnoughSkillPointsToIncreaseSkill(LevelOfCurrentSelectedSkill)
+            SkillIsBelowMaxLevel = CheckSkillIsBelowMaxLevel(IndexOfCurrentSelectedSkill)
+            Debug.Messagebox("This occurs inside the block that starts to increase the selected skill level")
+            if(HasEnoughSkillPointsToIncreaseSkill && SkillIsBelowMaxLevel)
+                Game.IncrementSkill(SkillNames[IndexOfCurrentSelectedSkill])
+                CurrentSkillPointsGained = CurrentSkillPointsGained - SkillPointCostToIncreaseSkill(LevelOfCurrentSelectedSkill)
+                BaseSkillLevels[IndexOfCurrentSelectedSkill] = BaseSkillLevels[IndexOfCurrentSelectedSkill] + 1
+                Debug.MessageBox("This occurs inside the if statement to try and level the skill")
+            endif
+
+        ;if player is done
+        elseif(Option == 8)
+            OptionDoneMenu = DisplayDoneMenu()
+            if(OptionDoneMenu == 1)
+                ;set != 8 to cancel done
+                Option = 9
+            else
+            ;player confirms done
+            endif
+
         endif
-        Option = DisplaySkillMenu.show(CurrentMenu)
+    endWhile
 EndFunction
 
 
 int Function DisplaySkillMenu(int menuNumber)
-	if(menuNumber == 0)
+	int returnValue
+    if(menuNumber == 0)
 		returnValue = MagicSkillMenu.show(CurrentSkillPointsGained, BaseSkillLevels[0], BaseSkillLevels[1], BaseSkillLevels[2], BaseSkillLevels[3], BaseSkillLevels[4], BaseSkillLevels[5])
 	elseif(menuNumber == 1)
 		returnValue = ThiefSkillMenu.show(CurrentSkillPointsGained, BaseSkillLevels[6], BaseSkillLevels[7], BaseSkillLevels[8], BaseSkillLevels[9], BaseSkillLevels[10], BaseSkillLevels[11])
 	else
 		returnValue = WarriorSkillMenu.show(CurrentSkillPointsGained, BaseSkillLevels[12], BaseSkillLevels[13], BaseSkillLevels[14], BaseSkillLevels[15], BaseSkillLevels[16], BaseSkillLevels[17])
 	endif
+    return returnValue
+EndFunction
+
+int Function DisplayDoneMenu()
+    int returnValue
+    returnValue = DoneMenu.show()
+    return returnValue
 EndFunction
 
 int Function CalculateSkillPointsGained()
     int NumLevelsGained = CurrentPlayerLevel - TrackedPlayerLevel
-    int SkillPointsToReturn = numLevels * SkillPointsPerLevel
+    int SkillPointsToReturn = NumLevelsGained * SkillPointsPerLevel
     return SkillPointsToReturn
 EndFunction
 
@@ -158,30 +198,43 @@ int Function GetSkillNameIndex(int menuNumber, int Option)
     ;This calculates the index in the skill arrays based on the menu option
 EndFunction
 
-bool Function EnoughSkillPointsToIncreaseSkill(num levelOfSkill)
+bool Function CheckEnoughSkillPointsToIncreaseSkill(int levelOfSkill)
     if(levelOfSkill < 25)
         if(CurrentSkillPointsGained >= SkillPointCost0)
             return true
         else
             return false
+        endif
     elseif(levelOfSkill >= 25 && levelOfSkill < 50)
         if(CurrentSkillPointsGained >= SkillPointCost25)
             return true
         else
             return false
+        endif
     elseif(levelOfSkill >= 50 && levelOfSkill < 75)
         if(CurrentSkillPointsGained >= SkillPointCost50)
             return true
         else
-            return false   
+            return false
+        endif
     elseif(levelOfSkill >= 75)
         if(CurrentSkillPointsGained >= SkillPointCost75)
             return true
         else
             return false   
+        endif
+    endif
 EndFunction
 
-int Function SkillPointCostToIncreaseSkill(num levelOfSkill)
+bool Function CheckSkillIsBelowMaxLevel(int skillIndexNumber)
+    if(BaseSkillLevels[skillIndexNumber] > MaxSkillLevels[skillIndexNumber])
+        return true
+    else
+        return false
+    endif
+EndFunction
+
+int Function SkillPointCostToIncreaseSkill(int levelOfSkill)
     if(levelOfSkill < 25)
         return SkillPointCost0
     elseif(levelOfSkill >= 25 && levelOfSkill < 50)
@@ -190,6 +243,7 @@ int Function SkillPointCostToIncreaseSkill(num levelOfSkill)
         return SkillPointCost50
     elseif(levelOfSkill >= 75)
         return SkillPointCost75 
+    endif
 EndFunction
 
 ;============================================
@@ -201,67 +255,85 @@ Function Initialization()
     int tempPlayerLevel = Game.GetPlayer().GetLevel()
     CurrentPlayerLevel = tempPlayerLevel
     TrackedPlayerLevel = tempPlayerLevel
+    CurrentSkillPointsGained = 0
 
     ;trigger for sleep
     RegisterForSleep()  
 
-    ;set base skill names, base skill levels, and max skill levels
-    SetBaseSkillNames()
-    SetBaseSkillLevels()
-    SetRacialBonuses()
-    SetMaxSkillLevels()
+    ;set trigger for racemenu closing
+    RegisterForMenu("RaceSex Menu")
 
     ;display confirmation message
     InitializationMessage.show()
 EndFunction
 
+Function SetInitialSkills()
+    ;set base skill names, base skill levels, and max skill levels
+    SetBaseSkillNames()
+    SetBaseSkillLevels()
+    SetRacialBonuses()
+    SetMaxSkillLevels()
+EndFunction
+
 Function SetBaseSkillNames()
-    SkillNames[0] = "Alteration"
-	SkillNames[1] = "Conjuration"
-	SkillNames[2] = "Destruction"
-	SkillNames[3] = "Enchanting"
-	SkillNames[4] = "Illusion"
-	SkillNames[5] = "Restoration"
-	SkillNames[6] = "Alchemy"
-	SkillNames[7] = "LightArmor"
-	SkillNames[8] = "Lockpicking"
-	SkillNames[9] = "Pickpocket"
-	SkillNames[10] = "Sneak"
-	SkillNames[11] = "Speechcraft"
-	SkillNames[12] = "Marksman"
-	SkillNames[13] = "Block"
-	SkillNames[14] = "HeavyArmor"
-	SkillNames[15] = "OneHanded"
-	SkillNames[16] = "Smithing"
-	SkillNames[17] = "TwoHanded"
+    string[] tempSkillNames = new string[18]
+    tempSkillNames[0] = "Alteration"
+	tempSkillNames[1] = "Conjuration"
+	tempSkillNames[2] = "Destruction"
+	tempSkillNames[3] = "Enchanting"
+	tempSkillNames[4] = "Illusion"
+	tempSkillNames[5] = "Restoration"
+	tempSkillNames[6] = "Alchemy"
+	tempSkillNames[7] = "LightArmor"
+	tempSkillNames[8] = "Lockpicking"
+	tempSkillNames[9] = "Pickpocket"
+	tempSkillNames[10] = "Sneak"
+	tempSkillNames[11] = "Speechcraft"
+	tempSkillNames[12] = "Marksman"
+	tempSkillNames[13] = "Block"
+	tempSkillNames[14] = "HeavyArmor"
+	tempSkillNames[15] = "OneHanded"
+	tempSkillNames[16] = "Smithing"
+	tempSkillNames[17] = "TwoHanded"  
+    SkillNames = tempSkillNames
 EndFunction
 
 Function SetBaseSkillLevels()
+    int valueOfBaseSkill   
+    int[] tempBaseSkillLevels = new int[18] 
     int i = 0
-    while(i < SkillNames.length)
-        BaseSkillLevels[i] = Game.GetPlayer().GetBaseActorValue(SkillNames[i])
+    while(i < 18)
+        valueOfBaseSkill = Game.GetPlayer().GetBaseActorValue(SkillNames[i]) as int
+        tempBaseSkillLevels[i] = valueOfBaseSkill
         i += 1
     endWhile
+    BaseSkillLevels = tempBaseSkillLevels
 EndFunction
 
 Function SetMaxSkillLevels()
+    int[] tempMaxSkillLevels = new int[18]
     int i = 0
-    while(i < SkillNames.length)
-        MaxSkillLevels[i] = MaxSkillLevelBaseDefault + (CurrentPlayerLevel * MaxSkillLevelMultiplier) + SkillLevelRacialBonuses[i]
+    while(i < 18)
+        tempMaxSkillLevels[i] = MaxSkillLevelBaseDefault + (CurrentPlayerLevel * MaxSkillLevelMultiplier) + SkillLevelRacialBonuses[i]
+        i += 1
     endWhile
+    MaxSkillLevels = tempMaxSkillLevels
 EndFunction
 
 Function SetRacialBonuses()
+    int[] tempSkillLevelRacialBonuses = new int[18]
     int r = 0
-    while(r < SkillNames.length)
+    while(r < 18)
         if(BaseSkillLevels[r] > 18)
             if(BaseSkillLevels[r] > 20)
-                SkillLevelRacialBonuses[r] = 10
+                tempSkillLevelRacialBonuses[r] = 10
             else
-                SkillLevelRacialBonuses[r] = 5
+                tempSkillLevelRacialBonuses[r] = 5
             endif
         else
-            BaseSkillLevels[r] = 0
+            tempSkillLevelRacialBonuses[r] = 0
         endif
-    endWhile   
+        r += 1
+    endWhile  
+    SkillLevelRacialBonuses = tempSkillLevelRacialBonuses 
 EndFunction
