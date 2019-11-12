@@ -63,6 +63,8 @@ Message Property ThiefSkillMenu auto
 {Menu to display on leveling Thief Skills}
 Message property DoneMenu auto
 {This is the message that confirm the completion of skill assignment}
+Message property HelpMenu auto
+{This is the message that appears when a user clicks Help}
 
 ;==============================================================================================================
 
@@ -119,7 +121,7 @@ Function AddSkills()
     bool SkillIsBelowMaxLevel
 
     int OptionDoneMenu
-    int Option = 9
+    int Option = 10
     while(Option != 8);didn't exit
         Option = DisplaySkillMenu(CurrentMenu)
         ;change menu if player picked another one
@@ -164,10 +166,14 @@ Function AddSkills()
             OptionDoneMenu = DisplayDoneMenu()
             if(OptionDoneMenu == 1)
                 ;set != 8 to cancel done
-                Option = 9
+                Option = 10
             else
             ;player confirms done
             endif
+
+        elseif(Option == 9)
+            DisplayHelpMenu()
+            Option = 10
 
         endif
     endWhile
@@ -177,11 +183,11 @@ EndFunction
 int Function DisplaySkillMenu(int menuNumber)
 	int returnValue
     if(menuNumber == 0)
-		returnValue = MagicSkillMenu.show(CurrentSkillPointsGained, BaseSkillLevels[0], BaseSkillLevels[1], BaseSkillLevels[2], BaseSkillLevels[3], BaseSkillLevels[4], BaseSkillLevels[5])
+		returnValue = MagicSkillMenu.show(CurrentPlayerLevel, CurrentSkillPointsGained, BaseSkillLevels[0], BaseSkillLevels[1], BaseSkillLevels[2], BaseSkillLevels[3], BaseSkillLevels[4], BaseSkillLevels[5])
 	elseif(menuNumber == 1)
-		returnValue = ThiefSkillMenu.show(CurrentSkillPointsGained, BaseSkillLevels[6], BaseSkillLevels[7], BaseSkillLevels[8], BaseSkillLevels[9], BaseSkillLevels[10], BaseSkillLevels[11])
+		returnValue = ThiefSkillMenu.show(CurrentPlayerLevel, CurrentSkillPointsGained, BaseSkillLevels[6], BaseSkillLevels[7], BaseSkillLevels[8], BaseSkillLevels[9], BaseSkillLevels[10], BaseSkillLevels[11])
 	else
-		returnValue = WarriorSkillMenu.show(CurrentSkillPointsGained, BaseSkillLevels[12], BaseSkillLevels[13], BaseSkillLevels[14], BaseSkillLevels[15], BaseSkillLevels[16], BaseSkillLevels[17])
+		returnValue = WarriorSkillMenu.show(CurrentPlayerLevel, CurrentSkillPointsGained, BaseSkillLevels[12], BaseSkillLevels[13], BaseSkillLevels[14], BaseSkillLevels[15], BaseSkillLevels[16], BaseSkillLevels[17])
 	endif
     return returnValue
 EndFunction
@@ -190,6 +196,10 @@ int Function DisplayDoneMenu()
     int returnValue
     returnValue = DoneMenu.show()
     return returnValue
+EndFunction
+
+Function DisplayHelpMenu()
+    HelpMenu.show(SkillPointsPerLevel, SkillPointCost0, SkillPointCost25, SkillPointCost50, SkillPointCost75, MaxSkillLevelBaseDefault, MaxSkillLevelMultiplier)
 EndFunction
 
 int Function CalculateSkillPointsGained()
