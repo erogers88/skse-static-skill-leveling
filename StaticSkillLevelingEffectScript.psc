@@ -143,10 +143,15 @@ Function AddSkills()
         ;if player selected a skill to level
         elseif(Option >= 1 && Option <= 6)
             IndexOfCurrentSelectedSkill = GetSkillNameIndex(CurrentMenu, Option)
+            Debug.MessageBox("This is the index of the selected skill" + IndexOfCurrentSelectedSkill)
             LevelOfCurrentSelectedSkill = BaseSkillLevels[IndexOfCurrentSelectedSkill]
+            Debug.MessageBox("This is the level of the selected skill" + LevelOfCurrentSelectedSkill)
+            Debug.MessageBox("This is the max level of the selected skill" + MaxSkillLevels[IndexOfCurrentSelectedSkill])
             HasEnoughSkillPointsToIncreaseSkill = CheckEnoughSkillPointsToIncreaseSkill(LevelOfCurrentSelectedSkill)
             SkillIsBelowMaxLevel = CheckSkillIsBelowMaxLevel(IndexOfCurrentSelectedSkill)
-            Debug.Messagebox("This occurs inside the block that starts to increase the selected skill level")
+            Debug.MessageBox("This occurs inside the block that starts to increase the selected skill level")
+            Debug.MessageBox("Do you have enough skill points?" + HasEnoughSkillPointsToIncreaseSkill)
+            Debug.MessageBox("Is the skill you are trying to increase below max level?" + SkillIsBelowMaxLevel)
             if(HasEnoughSkillPointsToIncreaseSkill && SkillIsBelowMaxLevel)
                 Game.IncrementSkill(SkillNames[IndexOfCurrentSelectedSkill])
                 CurrentSkillPointsGained = CurrentSkillPointsGained - SkillPointCostToIncreaseSkill(LevelOfCurrentSelectedSkill)
@@ -227,7 +232,7 @@ bool Function CheckEnoughSkillPointsToIncreaseSkill(int levelOfSkill)
 EndFunction
 
 bool Function CheckSkillIsBelowMaxLevel(int skillIndexNumber)
-    if(BaseSkillLevels[skillIndexNumber] > MaxSkillLevels[skillIndexNumber])
+    if(BaseSkillLevels[skillIndexNumber] < MaxSkillLevels[skillIndexNumber])
         return true
     else
         return false
@@ -318,6 +323,7 @@ Function SetMaxSkillLevels()
         i += 1
     endWhile
     MaxSkillLevels = tempMaxSkillLevels
+    Debug.MessageBox("This is in the max skill level function, and this is a skill number:" + MaxSkillLevels[7])
 EndFunction
 
 Function SetRacialBonuses()
@@ -336,4 +342,5 @@ Function SetRacialBonuses()
         r += 1
     endWhile  
     SkillLevelRacialBonuses = tempSkillLevelRacialBonuses 
+    Debug.MessageBox("This is in the racial bonus function, and this is a skill number:" + SkillLevelRacialBonuses[7])
 EndFunction
