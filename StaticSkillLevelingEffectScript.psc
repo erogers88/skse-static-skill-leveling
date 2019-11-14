@@ -24,7 +24,8 @@ int property MaxSkillLevelBaseDefault auto
 {This is the base value for the players max skills, default 18}
 int property MaxSkillLevelMultiplier auto
 {This is the number added to the players allowable max every level, default 2}
-
+int property MaxSkillLevelTotal auto
+{This is the final maximum skill level, default 100}
 string[] property SkillNames auto
 {These are the names of the skills}
 int[] property BaseSkillLevels auto
@@ -65,6 +66,10 @@ Message property DoneMenu auto
 {This is the message that confirm the completion of skill assignment}
 Message property HelpMenu auto
 {This is the message that appears when a user clicks Help}
+Message property NotEnoughSkillPointsMenu auto
+{This is the message that appears when a user does not have enough points to level a skill}
+Message property SkillIsAtMaxLevelMenu auto
+{This is the message that appears when a user tries to level a skill above max level}
 
 ;==============================================================================================================
 
@@ -83,7 +88,7 @@ EndEvent
 Event OnMenuClose(string menuName)
     if (menuName == "RaceSex Menu")
         SetInitialSkills()
-        Debug.MessageBox("Race Menu Close Detected")
+        ;Debug.MessageBox("Race Menu Close Detected")
     endif
 EndEvent
 
@@ -100,8 +105,6 @@ Event OnSleepStop(bool abInterrupted)
                 AddSkills()       
             endif   
 	endIf
-    RegisterForSleep()
-    ;Maybe not needed - check later
 endEvent
 
 ;============================================
@@ -145,20 +148,25 @@ Function AddSkills()
         ;if player selected a skill to level
         elseif(Option >= 1 && Option <= 6)
             IndexOfCurrentSelectedSkill = GetSkillNameIndex(CurrentMenu, Option)
-            Debug.MessageBox("This is the index of the selected skill" + IndexOfCurrentSelectedSkill)
+            ;Debug.MessageBox("This is the index of the selected skill" + IndexOfCurrentSelectedSkill)
             LevelOfCurrentSelectedSkill = BaseSkillLevels[IndexOfCurrentSelectedSkill]
-            Debug.MessageBox("This is the level of the selected skill" + LevelOfCurrentSelectedSkill)
-            Debug.MessageBox("This is the max level of the selected skill" + MaxSkillLevels[IndexOfCurrentSelectedSkill])
+            ;Debug.MessageBox("This is the level of the selected skill" + LevelOfCurrentSelectedSkill)
+            ;Debug.MessageBox("This is the max level of the selected skill" + MaxSkillLevels[IndexOfCurrentSelectedSkill])
             HasEnoughSkillPointsToIncreaseSkill = CheckEnoughSkillPointsToIncreaseSkill(LevelOfCurrentSelectedSkill)
             SkillIsBelowMaxLevel = CheckSkillIsBelowMaxLevel(IndexOfCurrentSelectedSkill)
-            Debug.MessageBox("This occurs inside the block that starts to increase the selected skill level")
-            Debug.MessageBox("Do you have enough skill points?" + HasEnoughSkillPointsToIncreaseSkill)
-            Debug.MessageBox("Is the skill you are trying to increase below max level?" + SkillIsBelowMaxLevel)
+            if(SkillIsBelowMaxLevel == false)
+                SkillIsAtMaxLevelMenu.show()
+            elseif(HasEnoughSkillPointsToIncreaseSkill == false)
+                NotEnoughSkillPointsMenu.show()
+            endif
+            ;Debug.MessageBox("Do you have enough skill points?" + HasEnoughSkillPointsToIncreaseSkill)
+            ;Debug.MessageBox("Is the skill you are trying to increase below max level?" + SkillIsBelowMaxLevel)
             if(HasEnoughSkillPointsToIncreaseSkill && SkillIsBelowMaxLevel)
                 Game.IncrementSkill(SkillNames[IndexOfCurrentSelectedSkill])
+                ActorValueInfo.GetActorValueInfoByName(SkillNames[IndexOfCurrentSelectedSkill]).SetSkillExperience(0.0)
                 CurrentSkillPointsGained = CurrentSkillPointsGained - SkillPointCostToIncreaseSkill(LevelOfCurrentSelectedSkill)
                 BaseSkillLevels[IndexOfCurrentSelectedSkill] = BaseSkillLevels[IndexOfCurrentSelectedSkill] + 1
-                Debug.MessageBox("This occurs inside the if statement to try and level the skill")
+                ;Debug.MessageBox("This occurs inside the if statement to try and level the skill")
             endif
 
         ;if player is done
@@ -242,7 +250,7 @@ bool Function CheckEnoughSkillPointsToIncreaseSkill(int levelOfSkill)
 EndFunction
 
 bool Function CheckSkillIsBelowMaxLevel(int skillIndexNumber)
-    if(BaseSkillLevels[skillIndexNumber] < MaxSkillLevels[skillIndexNumber])
+    if(BaseSkillLevels[skillIndexNumber] < MaxSkillLevels[skillIndexNumber] && BaseSkillLevels[skillIndexNumber] < MaxSkillLevelTotal)
         return true
     else
         return false
@@ -333,7 +341,7 @@ Function SetMaxSkillLevels()
         i += 1
     endWhile
     MaxSkillLevels = tempMaxSkillLevels
-    Debug.MessageBox("This is in the max skill level function, and this is a skill number:" + MaxSkillLevels[7])
+    ;Debug.MessageBox("This is in the max skill level function, and this is a skill number:" + MaxSkillLevels[7])
 EndFunction
 
 Function SetRacialBonuses()
@@ -352,5 +360,5 @@ Function SetRacialBonuses()
         r += 1
     endWhile  
     SkillLevelRacialBonuses = tempSkillLevelRacialBonuses 
-    Debug.MessageBox("This is in the racial bonus function, and this is a skill number:" + SkillLevelRacialBonuses[7])
+    ;Debug.MessageBox("This is in the racial bonus function, and this is a skill number:" + SkillLevelRacialBonuses[7])
 EndFunction
