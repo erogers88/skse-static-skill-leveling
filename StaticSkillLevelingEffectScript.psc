@@ -26,12 +26,16 @@ int property MaxSkillLevelMultiplier auto
 {This is the number added to the players allowable max every level, default 2}
 int property MaxSkillLevelTotal auto
 {This is the final maximum skill level, default 100}
+int property MaxLevelsPerSkillPerPlayerLevel auto
+{The maximum number of skill levels a player can gain per level for one skill}
 string[] property SkillNames auto
 {These are the names of the skills}
 int[] property BaseSkillLevels auto
 {These are the base values of the players skills}
 int[] property MaxSkillLevels auto
 {These are the max values of the players skills}
+int[] property SkillIncreases auto
+{This tracks the number of increases of each skill per levelup}
 int[] property SkillLevelRacialBonuses auto
 {These are the racial bonuses for the players skills}
 
@@ -42,7 +46,9 @@ int[] property SkillLevelRacialBonuses auto
 int property CurrentSkillPointsGained auto
 {This is the number of current skill points remaining to allocate}
 int property SkillPointsPerLevel auto
-{This is the number of skillpoints gained per level}
+{This is the base number of skillpoints gained per level}
+int property SkillPointsLevelMultiplier auto
+{This is the multiplier added to the base number of skillpoints per level}
 int property SkillPointCost0 auto
 {This is the cost of raising a skill to 25}
 int property SkillPointCost25 auto
@@ -64,12 +70,18 @@ Message Property ThiefSkillMenu auto
 {Menu to display on leveling Thief Skills}
 Message property DoneMenu auto
 {This is the message that confirm the completion of skill assignment}
-Message property HelpMenu auto
-{This is the message that appears when a user clicks Help}
+Message property HelpMenu1 auto
+{This is page 1 of the help menu that appears when a user clicks Help}
+Message property HelpMenu2 auto
+{This is page 2 of the help menu that appears when a user clicks Help}
+Message property HelpMenu3 auto
+{This is page 3 of the help menu that appears when a user clicks Help}
 Message property NotEnoughSkillPointsMenu auto
 {This is the message that appears when a user does not have enough points to level a skill}
 Message property SkillIsAtMaxLevelMenu auto
 {This is the message that appears when a user tries to level a skill above max level}
+Message property SkillIncreasesAtMaxMenu auto
+{This is the message that appears when a player has increases the skill the max times for that skill per level}
 
 ;==============================================================================================================
 
@@ -113,16 +125,20 @@ endEvent
 
 Function AddSkills()
     CurrentSkillPointsGained = CurrentSkillPointsGained + CalculateSkillPointsGained()
+    int LevelsGained = CurrentPlayerLevel - TrackedPlayerLevel
+    SetSkillIncreasesBaselineIndex()
     TrackedPlayerLevel = CurrentPlayerLevel
+
     SetBaseSkillLevels()
     SetMaxSkillLevels()
 
-    int CurrentMenu = 0
     int IndexOfCurrentSelectedSkill
     int LevelOfCurrentSelectedSkill
     bool HasEnoughSkillPointsToIncreaseSkill
     bool SkillIsBelowMaxLevel
+    bool SkillIncreasesBelowMax
 
+    int CurrentMenu = 0
     int OptionDoneMenu
     int Option = 10
     while(Option != 8);didn't exit
@@ -148,25 +164,28 @@ Function AddSkills()
         ;if player selected a skill to level
         elseif(Option >= 1 && Option <= 6)
             IndexOfCurrentSelectedSkill = GetSkillNameIndex(CurrentMenu, Option)
-            ;Debug.MessageBox("This is the index of the selected skill" + IndexOfCurrentSelectedSkill)
+            ;This is the index of the selected skill
             LevelOfCurrentSelectedSkill = BaseSkillLevels[IndexOfCurrentSelectedSkill]
-            ;Debug.MessageBox("This is the level of the selected skill" + LevelOfCurrentSelectedSkill)
-            ;Debug.MessageBox("This is the max level of the selected skill" + MaxSkillLevels[IndexOfCurrentSelectedSkill])
+            ;This is the level of the selected skill
             HasEnoughSkillPointsToIncreaseSkill = CheckEnoughSkillPointsToIncreaseSkill(LevelOfCurrentSelectedSkill)
             SkillIsBelowMaxLevel = CheckSkillIsBelowMaxLevel(IndexOfCurrentSelectedSkill)
+            SkillIncreasesBelowMax = CheckSkillIncreasesBelowMax(IndexOfCurrentSelectedSkill, LevelsGained)
             if(SkillIsBelowMaxLevel == false)
                 SkillIsAtMaxLevelMenu.show()
+            elseif(SkillIncreasesBelowMax == false)
+                SkillIncreasesAtMaxMenu.show()
             elseif(HasEnoughSkillPointsToIncreaseSkill == false)
                 NotEnoughSkillPointsMenu.show()
             endif
-            ;Debug.MessageBox("Do you have enough skill points?" + HasEnoughSkillPointsToIncreaseSkill)
-            ;Debug.MessageBox("Is the skill you are trying to increase below max level?" + SkillIsBelowMaxLevel)
-            if(HasEnoughSkillPointsToIncreaseSkill && SkillIsBelowMaxLevel)
+            ;Do you have enough skill points?
+            ;Is the skill you are trying to increase below max level?
+            ;Have you already increased the skill the maximum number of times?
+            if(HasEnoughSkillPointsToIncreaseSkill && SkillIsBelowMaxLevel && SkillIncreasesBelowMax)
                 Game.IncrementSkill(SkillNames[IndexOfCurrentSelectedSkill])
                 ActorValueInfo.GetActorValueInfoByName(SkillNames[IndexOfCurrentSelectedSkill]).SetSkillExperience(0.0)
                 CurrentSkillPointsGained = CurrentSkillPointsGained - SkillPointCostToIncreaseSkill(LevelOfCurrentSelectedSkill)
                 BaseSkillLevels[IndexOfCurrentSelectedSkill] = BaseSkillLevels[IndexOfCurrentSelectedSkill] + 1
-                ;Debug.MessageBox("This occurs inside the if statement to try and level the skill")
+                SkillIncreases[IndexOfCurrentSelectedSkill] = SkillIncreases[IndexOfCurrentSelectedSkill] + 1
             endif
 
         ;if player is done
@@ -207,12 +226,18 @@ int Function DisplayDoneMenu()
 EndFunction
 
 Function DisplayHelpMenu()
-    HelpMenu.show(SkillPointsPerLevel, SkillPointCost0, SkillPointCost25, SkillPointCost50, SkillPointCost75, MaxSkillLevelBaseDefault, MaxSkillLevelMultiplier)
+    HelpMenu1.show()
+    HelpMenu2.show(SkillPointsPerLevel, SkillPointsLevelMultiplier, SkillPointCost0, SkillPointCost25, SkillPointCost50, SkillPointCost75)
+    HelpMenu3.show(MaxSkillLevelBaseDefault, MaxSkillLevelMultiplier)
 EndFunction
 
 int Function CalculateSkillPointsGained()
-    int NumLevelsGained = CurrentPlayerLevel - TrackedPlayerLevel
-    int SkillPointsToReturn = NumLevelsGained * SkillPointsPerLevel
+    int SkillPointsToReturn = 0
+    int LevelCounter = TrackedPlayerLevel
+    while (LevelCounter < CurrentPlayerLevel)
+        LevelCounter += 1
+        SkillPointsToReturn = SkillPointsToReturn + SkillPointsPerLevel + (LevelCounter * SkillPointsLevelMultiplier)
+    endWhile
     return SkillPointsToReturn
 EndFunction
 
@@ -251,6 +276,15 @@ EndFunction
 
 bool Function CheckSkillIsBelowMaxLevel(int skillIndexNumber)
     if(BaseSkillLevels[skillIndexNumber] < MaxSkillLevels[skillIndexNumber] && BaseSkillLevels[skillIndexNumber] < MaxSkillLevelTotal)
+        return true
+    else
+        return false
+    endif
+EndFunction
+
+bool Function CheckSkillIncreasesBelowMax(int skillIndexNumber, int levelsGained)
+    int NumTimesAllowedToLevelSkill = levelsGained * MaxLevelsPerSkillPerPlayerLevel
+    if (SkillIncreases[skillIndexNumber] < NumTimesAllowedToLevelSkill)
         return true
     else
         return false
@@ -341,7 +375,16 @@ Function SetMaxSkillLevels()
         i += 1
     endWhile
     MaxSkillLevels = tempMaxSkillLevels
-    ;Debug.MessageBox("This is in the max skill level function, and this is a skill number:" + MaxSkillLevels[7])
+EndFunction
+
+Function SetSkillIncreasesBaselineIndex()
+    int[] tempSkillIncreases = new int[18]
+    int i = 0
+    while (i < 18)
+        SkillIncreases[i] = 0
+        i += 1
+    endWhile
+    SkillIncreases = tempSkillIncreases
 EndFunction
 
 Function SetRacialBonuses()
@@ -360,5 +403,4 @@ Function SetRacialBonuses()
         r += 1
     endWhile  
     SkillLevelRacialBonuses = tempSkillLevelRacialBonuses 
-    ;Debug.MessageBox("This is in the racial bonus function, and this is a skill number:" + SkillLevelRacialBonuses[7])
 EndFunction
