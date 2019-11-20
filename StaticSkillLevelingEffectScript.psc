@@ -38,6 +38,8 @@ int[] property SkillIncreases auto
 {This tracks the number of increases of each skill per levelup}
 int[] property SkillLevelRacialBonuses auto
 {These are the racial bonuses for the players skills}
+int[] property SkillBethesdaIndex auto
+{This is a lookup to map from my skill ordering to Bethesdas}
 
 ;==========================================
 ;Skillpoint Related Properties
@@ -124,6 +126,8 @@ endEvent
 ;============================================
 
 Function AddSkills()
+    SetSkillBethesdaIndex()
+    
     CurrentSkillPointsGained = CurrentSkillPointsGained + CalculateSkillPointsGained()
     int LevelsGained = CurrentPlayerLevel - TrackedPlayerLevel
     SetSkillIncreasesBaselineIndex()
@@ -212,9 +216,9 @@ int Function DisplaySkillMenu(int menuNumber)
     if(menuNumber == 0)
 		returnValue = MagicSkillMenu.show(CurrentPlayerLevel, CurrentSkillPointsGained, BaseSkillLevels[0], BaseSkillLevels[1], BaseSkillLevels[2], BaseSkillLevels[3], BaseSkillLevels[4], BaseSkillLevels[5])
 	elseif(menuNumber == 1)
-		returnValue = ThiefSkillMenu.show(CurrentPlayerLevel, CurrentSkillPointsGained, BaseSkillLevels[6], BaseSkillLevels[7], BaseSkillLevels[8], BaseSkillLevels[9], BaseSkillLevels[10], BaseSkillLevels[11])
+        returnValue = WarriorSkillMenu.show(CurrentPlayerLevel, CurrentSkillPointsGained, BaseSkillLevels[12], BaseSkillLevels[13], BaseSkillLevels[14], BaseSkillLevels[15], BaseSkillLevels[16], BaseSkillLevels[17])
 	else
-		returnValue = WarriorSkillMenu.show(CurrentPlayerLevel, CurrentSkillPointsGained, BaseSkillLevels[12], BaseSkillLevels[13], BaseSkillLevels[14], BaseSkillLevels[15], BaseSkillLevels[16], BaseSkillLevels[17])
+		returnValue = ThiefSkillMenu.show(CurrentPlayerLevel, CurrentSkillPointsGained, BaseSkillLevels[6], BaseSkillLevels[7], BaseSkillLevels[8], BaseSkillLevels[9], BaseSkillLevels[10], BaseSkillLevels[11])
 	endif
     return returnValue
 EndFunction
@@ -242,8 +246,9 @@ int Function CalculateSkillPointsGained()
 EndFunction
 
 int Function GetSkillNameIndex(int menuNumber, int Option)
-	return Option - 1 + menuNumber * 6
-    ;This calculates the index in the skill arrays based on the menu option
+    int tempIndex = Option - 1 + menuNumber * 6
+    return SkillBethesdaIndex[tempIndex]
+    ;This calculates the index in the skill arrays based on the menu option, and also accounts for a lookup to Bethesda ordering
 EndFunction
 
 bool Function CheckEnoughSkillPointsToIncreaseSkill(int levelOfSkill)
@@ -353,6 +358,29 @@ Function SetBaseSkillNames()
 	tempSkillNames[16] = "Smithing"
 	tempSkillNames[17] = "TwoHanded"  
     SkillNames = tempSkillNames
+EndFunction
+
+Function SetSkillBethesdaIndex()
+    int[] tempSkillIndexNumbers = new int[18]
+    tempSkillIndexNumbers[0] = 4
+    tempSkillIndexNumbers[1] = 1
+    tempSkillIndexNumbers[2] = 2
+    tempSkillIndexNumbers[3] = 5
+    tempSkillIndexNumbers[4] = 0
+    tempSkillIndexNumbers[5] = 3
+    tempSkillIndexNumbers[6] = 16
+    tempSkillIndexNumbers[7] = 14
+    tempSkillIndexNumbers[8] = 13
+    tempSkillIndexNumbers[9] = 17
+    tempSkillIndexNumbers[10] = 15
+    tempSkillIndexNumbers[11] = 12
+    tempSkillIndexNumbers[12] = 7
+    tempSkillIndexNumbers[13] = 10
+    tempSkillIndexNumbers[14] = 8
+    tempSkillIndexNumbers[15] = 9
+    tempSkillIndexNumbers[16] = 11
+    tempSkillIndexNumbers[17] = 6
+    SkillBethesdaIndex = tempSkillIndexNumbers
 EndFunction
 
 Function SetBaseSkillLevels()
