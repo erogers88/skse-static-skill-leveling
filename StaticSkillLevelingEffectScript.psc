@@ -6,6 +6,9 @@ scriptname StaticSkillLevelingEffectScript extends ActiveMagicEffect
 ;==========================================
 
 Message property InitializationMessage auto
+{This is the message that shows when the mod first starts}
+Race property TrackedPlayerRace auto
+{This is the race of the player that helps track if it's been changed}
 
 ;==========================================
 ;Player Level Properties
@@ -96,13 +99,16 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
 EndEvent
 
 ;==========================================
-;Set player skill levels when race menu is closed
+;Set racial bonuses if player changed race
 ;==========================================
 
 Event OnMenuClose(string menuName)
     if (menuName == "RaceSex Menu")
-        SetInitialSkills()
-        ;Debug.MessageBox("Race Menu Close Detected")
+        Race tempRace = Game.GetPlayer().GetRace()
+        if (TrackedPlayerRace != tempRace)
+            SetInitialSkills()
+            TrackedPlayerRace = tempRace
+        endif
     endif
 EndEvent
 
@@ -319,11 +325,17 @@ Function Initialization()
     TrackedPlayerLevel = tempPlayerLevel
     CurrentSkillPointsGained = 0
 
-    ;trigger for sleep
+    ;set trigger for sleep
     RegisterForSleep()  
 
     ;set trigger for racemenu closing
     RegisterForMenu("RaceSex Menu")
+
+    ;set player race for tracking 
+    TrackedPlayerRace = Game.GetPlayer().GetRace()
+
+    ;set initial skill values
+    SetInitialSkills()
 
     ;display confirmation message
     InitializationMessage.show()
