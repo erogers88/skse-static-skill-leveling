@@ -79,6 +79,8 @@ Message property HelpMenu2 auto
 {This is page 2 of the help menu that appears when a user clicks Help}
 Message property HelpMenu3 auto
 {This is page 3 of the help menu that appears when a user clicks Help}
+Message property HelpMenu4 auto
+{This is page 4 of the help menu that appears when a user clicks Help}
 Message property NotEnoughSkillPointsMenu auto
 {This is the message that appears when a user does not have enough points to level a skill}
 Message property SkillIsAtMaxLevelMenu auto
@@ -233,8 +235,9 @@ EndFunction
 
 Function DisplayHelpMenu()
     HelpMenu1.show()
-    HelpMenu2.show(SkillPointsPerLevel, SkillPointsLevelMultiplier, SkillPointCost0, SkillPointCost25, SkillPointCost50, SkillPointCost75)
-    HelpMenu3.show(MaxSkillLevelBaseDefault, MaxSkillLevelMultiplier)
+    HelpMenu2.show(SkillPointsPerLevel, SkillPointsLevelMultiplier)
+    HelpMenu3.show(SkillPointCost0, SkillPointCost25, SkillPointCost50, SkillPointCost75)
+    HelpMenu4.show(MaxSkillLevelBaseDefault, MaxSkillLevelMultiplier)
 EndFunction
 
 int Function CalculateSkillPointsGained()
