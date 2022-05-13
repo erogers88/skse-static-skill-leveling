@@ -1,2 +1,0 @@
-cd "C:\Users\erikr\Repos\StaticSkillLeveling"
-"C:\Program Files (x86)\Steam\steamapps\common\Skyrim Special Edition\Papyrus Compiler\PapyrusCompiler.exe" "C:\Users\erikr\Repos\StaticSkillLeveling\StaticSkillLevelingEffectScript.psc" -f="TESV_Papyrus_Flags.flg" -i="C:\Program Files (x86)\Steam\steamapps\common\Skyrim Special Edition\Data\Scripts\Source" -o="C:\Users\erikr\Repos\StaticSkillLeveling\builds"
