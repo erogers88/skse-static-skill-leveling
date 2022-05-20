@@ -2,6 +2,7 @@ ScriptName StaticSkillLevelingEffectScript Extends ActiveMagicEffect
 {This script checks for a level up when the player wakes from sleep and allows them to assign skillpoints}
 
 Actor Property PlayerRef Auto
+StaticSkillLevelingMCMScript Property m Auto
 
 ;==========================================
 ;Initialization Properties
@@ -14,31 +15,31 @@ Message Property InitializationMessage Auto
 ;Player Level Properties
 ;==========================================
 
-Int Property TrackedPlayerLevel Auto
-{This tracks the players level}
-Int Property CurrentPlayerLevel Auto
-{This is the current players level}
+;Int Property TrackedPlayerLevel Auto
+;{This tracks the players level}
+;Int Property CurrentPlayerLevel Auto
+;{This is the current players level}
 
 ;==========================================
 ;Player Skill Properties
 ;==========================================
 
-Int Property MaxSkillLevelBaseDefault Auto
-{This is the base value for the players max skills, default 18}
-Int Property MaxSkillLevelMultiplier Auto
-{This is the number added to the players allowable max every level, default 2}
-Int Property MaxSkillLevelTotal Auto
-{This is the final maximum skill level, default 100}
-Int Property MaxLevelsPerSkillPerPlayerLevel Auto
-{The maximum number of skill levels a player can gain per level for one skill}
+;Int Property MaxSkillLevelBaseDefault Auto
+;{This is the base value for the players max skills, default 18}
+;Int Property MaxSkillLevelMultiplier Auto
+;{This is the number added to the players allowable max every level, default 2}
+;Int Property MaxSkillLevelTotal Auto
+;{This is the final maximum skill level, default 100}
+;Int Property MaxLevelsPerSkillPerPlayerLevel Auto
+;{The maximum number of skill levels a player can gain per level for one skill}
 String[] Property SkillNames Auto
 {These are the names of the skills}
 Int[] Property BaseSkillLevels Auto
 {These are the base values of the players skills}
 Int[] Property MaxSkillLevels Auto
 {These are the max values of the players skills}
-Int[] Property SkillIncreases Auto
-{This tracks the number of increases of each skill per levelup}
+;Int[] Property SkillIncreases Auto
+;{This tracks the number of increases of each skill per levelup}
 Int[] Property SkillLevelRacialBonuses Auto
 {These are the racial bonuses for the players skills}
 Int[] Property SkillBethesdaIndex Auto
@@ -48,20 +49,20 @@ Int[] Property SkillBethesdaIndex Auto
 ;Skillpoint Related Properties
 ;==========================================
 
-Int Property CurrentSkillPointsGained Auto
-{This is the number of current skill points remaining to allocate}
-Int Property SkillPointsPerLevel Auto
-{This is the base number of skillpoints gained per level}
-Int Property SkillPointsLevelMultiplier Auto
-{This is the multiplier added to the base number of skillpoints per level}
-Int Property SkillPointCost0 Auto
-{This is the cost of raising a skill to 25}
-Int Property SkillPointCost25 Auto
-{This is the cost of raising a skill from 25-50}
-Int Property SkillPointCost50 Auto
-{This is the cost of raising a skill from 50-75}
-Int Property SkillPointCost75 Auto
-{This is the cost of raising a skill above 75}
+;Int Property CurrentSkillPointsGained Auto
+;{This is the number of current skill points remaining to allocate}
+;Int Property SkillPointsPerLevel Auto
+;{This is the base number of skillpoints gained per level}
+;Int Property SkillPointsLevelMultiplier Auto
+;{This is the multiplier added to the base number of skillpoints per level}
+;Int Property SkillPointCost0 Auto
+;{This is the cost of raising a skill to 25}
+;Int Property SkillPointCost25 Auto
+;{This is the cost of raising a skill from 25-50}
+;Int Property SkillPointCost50 Auto
+;{This is the cost of raising a skill from 50-75}
+;Int Property SkillPointCost75 Auto
+;{This is the cost of raising a skill above 75}
 
 ;==========================================
 ;Level Up Menu Properties
@@ -124,7 +125,7 @@ EndEvent
 ;==========================================
 
 Event OnMenuClose(String asMenuName)
-  If asMenuName == "RaceSex Menu" && CurrentPlayerLevel == 1
+  If asMenuName == "RaceSex Menu" && m.CurrentPlayerLevel == 1
     SetInitialSkills()
   Else
     UnregisterForMenu("RaceSex Menu")
@@ -139,8 +140,8 @@ Event OnSleepStop(Bool abInterrupted)
   If abInterrupted
     ;do nothing if interrupted
   Else
-    CurrentPlayerLevel = PlayerRef.GetLevel()
-    If CurrentPlayerLevel > TrackedPlayerLevel
+    m.CurrentPlayerLevel = PlayerRef.GetLevel()
+    If m.CurrentPlayerLevel > m.TrackedPlayerLevel
       AddSkills()
     EndIf
   EndIf
@@ -151,11 +152,11 @@ EndEvent
 ;============================================
 
 Function AddSkills()
-  CurrentSkillPointsGained = CurrentSkillPointsGained + CalculateSkillPointsGained()
+  m.CurrentSkillPointsGained = m.CurrentSkillPointsGained + CalculateSkillPointsGained()
 
-  Int LevelsGained = CurrentPlayerLevel - TrackedPlayerLevel
+  Int LevelsGained = m.CurrentPlayerLevel - m.TrackedPlayerLevel
   SetSkillIncreasesBaselineIndex()
-  TrackedPlayerLevel = CurrentPlayerLevel
+  m.TrackedPlayerLevel = m.CurrentPlayerLevel
 
   SetBaseSkillLevels()
   SetMaxSkillLevels()
@@ -222,9 +223,9 @@ Function AddSkills()
         Game.IncrementSkill(SkillNames[IndexOfCurrentSelectedSkill])
         ActorValueInfo.GetActorValueInfoByName(SkillNames[IndexOfCurrentSelectedSkill]).SetSkillExperience(0.0)
 
-        CurrentSkillPointsGained                     = CurrentSkillPointsGained - SkillPointCostToIncreaseSkill(LevelOfCurrentSelectedSkill)
+        m.CurrentSkillPointsGained                     = m.CurrentSkillPointsGained - SkillPointCostToIncreaseSkill(LevelOfCurrentSelectedSkill)
         BaseSkillLevels[IndexOfCurrentSelectedSkill] = BaseSkillLevels[IndexOfCurrentSelectedSkill] + 1
-        SkillIncreases[IndexOfCurrentSelectedSkill]  = SkillIncreases[IndexOfCurrentSelectedSkill] + 1
+        m.SkillIncreases[IndexOfCurrentSelectedSkill]  = m.SkillIncreases[IndexOfCurrentSelectedSkill] + 1
       EndIf
 
     ;if player is done
@@ -247,14 +248,14 @@ EndFunction
 
 Int Function DisplaySkillMenu(Int menuNumber)
   If menuNumber == 0
-    Return MagicSkillMenu.Show(CurrentPlayerLevel, CurrentSkillPointsGained, BaseSkillLevels[0], BaseSkillLevels[1], BaseSkillLevels[2], BaseSkillLevels[3], BaseSkillLevels[4], BaseSkillLevels[5])
+    Return MagicSkillMenu.Show(m.CurrentPlayerLevel, m.CurrentSkillPointsGained, BaseSkillLevels[0], BaseSkillLevels[1], BaseSkillLevels[2], BaseSkillLevels[3], BaseSkillLevels[4], BaseSkillLevels[5])
   EndIf
 
   If menuNumber == 1
-    Return WarriorSkillMenu.Show(CurrentPlayerLevel, CurrentSkillPointsGained, BaseSkillLevels[12], BaseSkillLevels[13], BaseSkillLevels[14], BaseSkillLevels[15], BaseSkillLevels[16], BaseSkillLevels[17])
+    Return WarriorSkillMenu.Show(m.CurrentPlayerLevel, m.CurrentSkillPointsGained, BaseSkillLevels[12], BaseSkillLevels[13], BaseSkillLevels[14], BaseSkillLevels[15], BaseSkillLevels[16], BaseSkillLevels[17])
   EndIf
 
-  Return ThiefSkillMenu.Show(CurrentPlayerLevel, CurrentSkillPointsGained, BaseSkillLevels[6], BaseSkillLevels[7], BaseSkillLevels[8], BaseSkillLevels[9], BaseSkillLevels[10], BaseSkillLevels[11])
+  Return ThiefSkillMenu.Show(m.CurrentPlayerLevel, m.CurrentSkillPointsGained, BaseSkillLevels[6], BaseSkillLevels[7], BaseSkillLevels[8], BaseSkillLevels[9], BaseSkillLevels[10], BaseSkillLevels[11])
 EndFunction
 
 Int Function DisplayDoneMenu()
@@ -263,19 +264,19 @@ EndFunction
 
 Function DisplayHelpMenu()
   HelpMenu1.Show()
-  HelpMenu2.Show(SkillPointsPerLevel, SkillPointsLevelMultiplier)
-  HelpMenu3.Show(SkillPointCost0, SkillPointCost25, SkillPointCost50, SkillPointCost75)
+  HelpMenu2.Show(m.SkillPointsPerLevel, m.SkillPointsLevelMultiplier)
+  HelpMenu3.Show(m.SkillPointCost0, m.SkillPointCost25, m.SkillPointCost50, m.SkillPointCost75)
   HelpMenu4.Show()
-  HelpMenu5.Show(MaxSkillLevelBaseDefault, MaxSkillLevelMultiplier)
+  HelpMenu5.Show(m.MaxSkillLevelBaseDefault, m.MaxSkillLevelMultiplier)
 EndFunction
 
 Int Function CalculateSkillPointsGained()
   Int SkillPointsToReturn = 0
-  Int LevelCounter = TrackedPlayerLevel
+  Int LevelCounter = m.TrackedPlayerLevel
 
-  While LevelCounter < CurrentPlayerLevel
+  While LevelCounter < m.CurrentPlayerLevel
     LevelCounter += 1
-    SkillPointsToReturn += SkillPointsPerLevel + (LevelCounter * SkillPointsLevelMultiplier)
+    SkillPointsToReturn += m.SkillPointsPerLevel + (LevelCounter * m.SkillPointsLevelMultiplier)
   EndWhile
 
   Return SkillPointsToReturn
@@ -289,46 +290,46 @@ EndFunction
 
 Bool Function CheckEnoughSkillPointsToIncreaseSkill(Int levelOfSkill)
   If levelOfSkill < 25
-    Return CurrentSkillPointsGained >= SkillPointCost0
+    Return m.CurrentSkillPointsGained >= m.SkillPointCost0
   EndIf
 
   If LibMathf.InRange(levelOfSkill, 25, 49)
-    Return CurrentSkillPointsGained >= SkillPointCost25
+    Return m.CurrentSkillPointsGained >= m.SkillPointCost25
   EndIf
 
   If LibMathf.InRange(levelOfSkill, 50, 74)
-    Return CurrentSkillPointsGained >= SkillPointCost50
+    Return m.CurrentSkillPointsGained >= m.SkillPointCost50
   EndIf
 
   If levelOfSkill >= 75
-    Return CurrentSkillPointsGained >= SkillPointCost75
+    Return m.CurrentSkillPointsGained >= m.SkillPointCost75
   EndIf
 EndFunction
 
 Bool Function CheckSkillIsBelowMaxLevel(Int skillIndexNumber)
-  Return BaseSkillLevels[skillIndexNumber] < MaxSkillLevels[skillIndexNumber] && BaseSkillLevels[skillIndexNumber] < MaxSkillLevelTotal
+  Return BaseSkillLevels[skillIndexNumber] < MaxSkillLevels[skillIndexNumber] && BaseSkillLevels[skillIndexNumber] < m.MaxSkillLevelTotal
 EndFunction
 
 Bool Function CheckSkillIncreasesBelowMax(Int skillIndexNumber, Int levelsGained)
-  Int NumTimesAllowedToLevelSkill = levelsGained * MaxLevelsPerSkillPerPlayerLevel
-  Return SkillIncreases[skillIndexNumber] < NumTimesAllowedToLevelSkill
+  Int NumTimesAllowedToLevelSkill = levelsGained * m.MaxLevelsPerSkillPerPlayerLevel
+  Return m.SkillIncreases[skillIndexNumber] < NumTimesAllowedToLevelSkill
 EndFunction
 
 Int Function SkillPointCostToIncreaseSkill(Int levelOfSkill)
   If levelOfSkill < 25
-    Return SkillPointCost0
+    Return m.SkillPointCost0
   EndIf
 
   If LibMathf.InRange(levelOfSkill, 25, 49)
-    Return SkillPointCost25
+    Return m.SkillPointCost25
   EndIf
 
   If LibMathf.InRange(levelOfSkill, 50, 74)
-    Return SkillPointCost50
+    Return m.SkillPointCost50
   EndIf
 
   If levelOfSkill >= 75
-    Return SkillPointCost75
+    Return m.SkillPointCost75
   EndIf
 EndFunction
 
@@ -338,9 +339,9 @@ EndFunction
 
 Function Initialization()
   ;set initial player levels
-  CurrentPlayerLevel = PlayerRef.GetLevel()
-  TrackedPlayerLevel = CurrentPlayerLevel
-  CurrentSkillPointsGained = 0
+  m.CurrentPlayerLevel = PlayerRef.GetLevel()
+  m.TrackedPlayerLevel = m.CurrentPlayerLevel
+  m.CurrentSkillPointsGained = 0
 
   ;set trigger for sleep
   RegisterForSleep()
@@ -373,7 +374,7 @@ Function SetBaseSkillLevels()
 EndFunction
 
 Function SetMaxSkillLevels()
-  Int a = MaxSkillLevelBaseDefault + (CurrentPlayerLevel * MaxSkillLevelMultiplier)
+  Int a = m.MaxSkillLevelBaseDefault + (m.CurrentPlayerLevel * m.MaxSkillLevelMultiplier)
   Int i = 0
 
   While i < MaxSkillLevels.Length
@@ -386,8 +387,8 @@ EndFunction
 Function SetSkillIncreasesBaselineIndex()
   int i = 0
 
-  While (i < SkillIncreases.Length)
-    SkillIncreases[i] = 0
+  While (i < m.SkillIncreases.Length)
+    m.SkillIncreases[i] = 0
     i += 1
   EndWhile
 
