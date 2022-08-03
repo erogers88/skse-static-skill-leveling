@@ -140,6 +140,7 @@ Event OnSleepStop(Bool abInterrupted)
   If abInterrupted
     ;do nothing if interrupted
   Else
+    Utility.Wait(1)
     m.CurrentPlayerLevel = PlayerRef.GetLevel()
     If m.CurrentPlayerLevel > m.TrackedPlayerLevel
       AddSkills()
